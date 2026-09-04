@@ -12,10 +12,31 @@
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "folderColorizerContainer",
+          "title": "Folder Colorizer",
+          "icon": "images/school-folder.svg"
+        }
+      ]
+    },
+    "views": {
+      "folderColorizerContainer": [
+        {
+          "id": "folderColorizerView",
+          "name": "Custom Folders"
+        }
+      ]
+    },
     "commands": [
       {
         "command": "folder-colorizer.setColor",
         "title": "AAA-Test Colora Cartella"
+      },
+      {
+        "command": "folderColorizer.selectFolder",
+        "title": "Seleziona Cartella"
       }
     ],
     "keybindings": [
@@ -54,5 +75,6 @@
   "overrides": {
     "diff": "^8.0.4",
     "serialize-javascript": "^7.0.6"
-  }
+  },
+  "repository": "https://github.com/devlabsolutionstm888-ctrl/folder-color-sync"
 }

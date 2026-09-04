@@ -1,42 +1,61 @@
 import * as vscode from 'vscode';
 
+class CustomFolderItem extends vscode.TreeItem {
+    constructor(
+        public readonly label: string,
+        public readonly color: string,
+        public readonly iconPath: vscode.Uri | { light: vscode.Uri; dark: vscode.Uri }
+    ) {
+        super(label, vscode.TreeItemCollapsibleState.None);
+        
+        this.tooltip = `Cartella: ${label} - Colore: ${color}`;
+        this.description = color;
+        
+        this.command = {
+            command: 'folderColorizer.selectFolder',
+            title: 'Seleziona Cartella',
+            arguments: [label, color]
+        };
+    }
+}
+
+class CustomFolderProvider implements vscode.TreeDataProvider<CustomFolderItem> {
+    private _onDidChangeTreeData: vscode.EventEmitter<CustomFolderItem | undefined | void> = new vscode.EventEmitter<CustomFolderItem | undefined | void>();
+    readonly onDidChangeTreeData: vscode.Event<CustomFolderItem | undefined | void> = this._onDidChangeTreeData.event;
+
+    getTreeItem(element: CustomFolderItem): vscode.TreeItem {
+        return element;
+    }
+
+    getChildren(element?: CustomFolderItem): Thenable<CustomFolderItem[]> {
+        const extensionPath = vscode.extensions.getExtension('folder-colorizer')?.extensionPath || '';
+        const iconUri = vscode.Uri.file(`${extensionPath}/images/school-folder.svg`);
+
+        const sampleFolders = [
+            new CustomFolderItem('Documenti Scuola', '#FF69B4', iconUri),
+            new CustomFolderItem('Progetti Code', '#00CED1', iconUri),
+            new CustomFolderItem('Archivio Storico', '#FFD700', iconUri)
+        ];
+
+        return Promise.resolve(sampleFolders);
+    }
+}
+
 export function activate(context: vscode.ExtensionContext) {
-    console.log('Folder Colorizer è ora attivo!');
+    console.log('Folder Colorizer Custom View attivata!');
 
-    let disposable = vscode.commands.registerCommand('folder-colorizer.setColor', async () => {
-        const folderName = await vscode.window.showInputBox({
-            placeHolder: 'Nome della cartella (es. view, page, components)',
-            prompt: 'Inserisci il nome della cartella da colorare'
-        });
+    const folderProvider = new CustomFolderProvider();
+    vscode.window.registerTreeDataProvider('folderColorizerView', folderProvider);
 
-        if (!folderName) {
-            return;
-        }
-
-        const colorHex = await vscode.window.showInputBox({
-            placeHolder: '#FF69B4 o un nome di colore',
-            prompt: 'Inserisci il codice esadecimale del colore'
-        });
-
-        if (!colorHex) {
-            return;
-        }
-
-        const config = vscode.workspace.getConfiguration('workbench');
-        const colorCustomizations: Record<string, any> = config.get('colorCustomizations') || {};
-
-        colorCustomizations[`folder.color.${folderName}`] = colorHex;
-        colorCustomizations[`list.activeSelectionForeground`] = colorHex;
-
-        try {
-            await config.update('colorCustomizations', colorCustomizations, vscode.ConfigurationTarget.Workspace);
-            vscode.window.showInformationMessage(`Cartella e scrittura "${folderName}" impostate con il colore ${colorHex}!`);
-        } catch (error) {
-            vscode.window.showErrorMessage(`Errore durante il salvataggio: ${error}`);
-        }
+    let selectDisposable = vscode.commands.registerCommand('folderColorizer.selectFolder', (name, color) => {
+        vscode.window.showInformationMessage(`Hai cliccato sulla cartella: ${name} con colore ${color}`);
     });
 
-    context.subscriptions.push(disposable);
+    let testDisposable = vscode.commands.registerCommand('folder-colorizer.setColor', () => {
+        vscode.window.showInformationMessage('Comando AAA-Test Colora Cartella eseguito con successo!');
+    });
+
+    context.subscriptions.push(selectDisposable, testDisposable);
 }
 
 export function deactivate() {}
